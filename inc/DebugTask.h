@@ -18,6 +18,7 @@ public:
     			uint16_t    stackDepth,
 				osPriority  priority,
 				uint32_t    period,
+				RTOS::Mutex* mutex_printf,
 				bool        immidiateStart = true);
 
 	~TaskManager();
@@ -27,6 +28,9 @@ public:
 protected:
 
 	void m_task();
+
+private:
+	RTOS::Mutex* m_mutex_printf;
 
 };
 

@@ -9,15 +9,9 @@
 #include <ConsumerProducer.h>
 
 #include <TermColor.h>
-#include "Application.h"
-
-/* TODO: implement consumer and producer task.
- * Implementation can be done in C style or by using an OOP approach.
- */
 
 
 namespace Erzeuger{
-
 
 	Producer::Producer(const char * const name,
 						uint16_t    stackDepth,
@@ -51,10 +45,11 @@ void Producer::m_task()
 	{
 		char* letter = nullptr;
 
-		osEvent result  = osSignalWait(RTOS::MESSAGEBOXEVENT | INT_EVENT, osWaitForever);
+		osEvent result  = osSignalWait(RTOS::MESSAGEBOXEVENT, osWaitForever);
 
-		if(result.value.signals & RTOS::MESSAGEBOXEVENT || result.value.signals & INT_EVENT )
+		if(result.value.signals & RTOS::MESSAGEBOXEVENT)
 		{
+
 			result = osMessageGet(m_Message_ID,osWaitForever); //ggf. Zeit anpassen
 
 			letter = (char*)result.value.p;
@@ -118,12 +113,18 @@ void Consumer::m_task()
 {
 	while(true)
 	{
+
 		char letter = '?';
 
 		m_used_sem->down();
+
 		m_mutex_buff->lock();
 
 		*m_buff >> letter;
+
+		m_mutex_buff->unlock();
+
+		m_unused_sem->up();
 
 		m_mutex_printf->lock();
 
@@ -133,16 +134,15 @@ void Consumer::m_task()
 
 		m_mutex_printf->unlock();
 
-		//printf("Consumer %s read from FIFO: %c\n", m_Name,letter);
 
-		m_mutex_buff->unlock();
 
-		m_unused_sem->up();
+
+
+
 
 	}
 
 }
-
 
 
 }

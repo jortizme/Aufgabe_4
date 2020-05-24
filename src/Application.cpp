@@ -15,6 +15,8 @@ using Platform::BSP::cout;
 const uint32_t bufferSize = (1 << 4) ;   // we want to have 16 elements in buffer.
 char mem[bufferSize];
 
+char ConsumerMem[sizeof(Verbraucher::Consumer)];
+
 /* ringbuffer stores data, producer and consumer need reference or pointer to ringbuffer. */
 Ringbuffer<char> ringbuffer(bufferSize, '?', mem);
 
@@ -29,21 +31,17 @@ static RTOS::Mutex buff_mutex = RTOS::Mutex(&mutex1);
 static osMutexDef_t mutex2 = {.name = "printf_mutex"};
 static RTOS::Mutex printf_mutex = RTOS::Mutex(&mutex2);
 
+
+
 Application::Application():
 		PRO("Producer",1024,osPriorityLow,&sem2,&sem1, &ringbuffer,&buff_mutex,&printf_mutex,Platform::BSP::TermColor::black,true),
-		MNG("Manager",1024,osPriorityNormal,2000,true),
-		GEN("Generator",1024,osPriorityNormal,10000,PRO.getTaskHandle(),JOYCPORT,JOYCPIN,Platform::BSP::DigitalInOut::Direction::INPUT,true),
+		MNG("Manager",1024,osPriorityNormal,2000,&printf_mutex,true),
+		GEN("Generator",1024,osPriorityNormal,5000,PRO.getTaskHandle(),JOYCPORT,JOYCPIN,Platform::BSP::DigitalInOut::Direction::INPUT,true),
 		CON1("Consumer1",1024,osPriorityLow,&sem2,&sem1, &ringbuffer,&buff_mutex,&printf_mutex,Platform::BSP::TermColor::blue, true),
-		CON2("Consumer2",1024,osPriorityLow,&sem2,&sem1, &ringbuffer,&buff_mutex,&printf_mutex,Platform::BSP::TermColor::red,true)
-{
-	/*har Consumer_Names[10];
+		CON2("Consumer2",1024,osPriorityLow,&sem2,&sem1, &ringbuffer,&buff_mutex,&printf_mutex,Platform::BSP::TermColor::red,true),
+		CON3("Consumer3",1024,osPriorityLow,&sem2,&sem1, &ringbuffer,&buff_mutex,&printf_mutex,Platform::BSP::TermColor::green,true)
 
-	for(int i = 0; i < CON_AMOUNT; i++)
-	{
-		sprintf(Consumer_Names,"Consumer%d",i);
-		CON[i] = &(Consumer::Consumer(Consumer_Names,1024,osPriorityNormal,&sem2,&sem1, &ringbuffer,&buff_mutex,true));
-	}
-*/
+{
     cout << Platform::BSP::TermColor::cls
          << Platform::BSP::TermColor::blue
          << "Starting Application"
@@ -53,11 +51,6 @@ Application::Application():
 
 Application::~Application()
 {
-	CON2.deleteTask();
-	CON1.deleteTask();
-	GEN.deleteTask();
 	delete GEN.JW2;
-	MNG.deleteTask();
-	PRO.deleteTask();
 }
 

@@ -50,8 +50,6 @@ private:
 
 	char pool[3];
 
-
-
 	};
 }
 
@@ -73,8 +71,6 @@ public:
 				bool        immidiateStart = true);
 
 		~Consumer();
-
-
 
 protected:
 

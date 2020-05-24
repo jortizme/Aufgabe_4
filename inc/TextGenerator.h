@@ -31,21 +31,16 @@ public:
 
 	Platform::BSP::DigitalInOut* JW2;
 
-
 /*Inhrited from RTOS::Task*/
 private:
 
 	osThreadId m_Producer_ID;
-	char m_text[361];
-
 
 protected:
 
 	void m_task();
 
-
 };
-
 
 
 #endif /* INC_TEXTGENERATOR_H_ */

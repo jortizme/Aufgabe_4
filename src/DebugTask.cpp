@@ -21,7 +21,11 @@ TaskManager::TaskManager(const char * const name,
 						uint16_t    stackDepth,
 						osPriority  priority,
 						uint32_t    period,
-						bool        immidiateStart): RTOS::PeriodicTaskBase(name, stackDepth, priority,period,immidiateStart)
+						RTOS::Mutex* mutex_printf,
+						bool        immidiateStart):
+						RTOS::PeriodicTaskBase(name, stackDepth, priority,period,immidiateStart),
+						m_mutex_printf(mutex_printf)
+
 {
 	this->finalizeInit();
 
@@ -32,7 +36,6 @@ TaskManager::~TaskManager(){}
 void TaskManager::m_task()
 
 {
-	//char *pcWriteBuffer;
 	TaskStatus_t *pxTaskStatusArray;
 	volatile UBaseType_t uxArraySize, x;
 	uint32_t ulTotalRunTime, ulStatsAsPercentage;
@@ -41,8 +44,6 @@ void TaskManager::m_task()
 	while(true)
 	{
 		osEvent result = osSignalWait(RTOS::TIMEREVENT, osWaitForever);
-
-
 
 			if(result.value.signals & RTOS::TIMEREVENT){
 
@@ -68,6 +69,8 @@ void TaskManager::m_task()
 				// Avoid divide by zero errors.
 				if( ulTotalRunTime > 0 )
 				{
+					m_mutex_printf->lock();
+
 					Platform::BSP::cout<<Color::red;
 					printf ("\n\n%20s%10s%15s%10s%10s%15s%10s%10s\r\n", "NAME", "ID", "STATE", "PRIO", "BASE", "TIME", "%%CPU", "STACK");
 					// For each populated position in the pxTaskStatusArray array,
@@ -115,11 +118,9 @@ void TaskManager::m_task()
 									0,
 									(unsigned int)pxTaskStatusArray[ x ].usStackHighWaterMark);
 						}
-
-						 //puts(pcWriteBuffer);
-
-						//pcWriteBuffer += strlen( ( char * ) pcWriteBuffer );
 					}
+
+					m_mutex_printf->unlock();
 				}
 
 				// The array is no longer needed, free the memory it consumes.

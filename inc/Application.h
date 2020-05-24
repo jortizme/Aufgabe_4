@@ -34,8 +34,6 @@
 
 #define INT_EVENT (0x01 << 6)
 
-#define CON_AMOUNT 2
-
 class Application {
 public:
 	Application();
@@ -44,16 +42,10 @@ private:
 
 	Erzeuger::Producer PRO;
 	TaskManager MNG;
-
-	//Consumer::Consumer CON[CON_AMOUNT];
 	TextGenerator GEN;
 	Verbraucher::Consumer CON1;
 	Verbraucher::Consumer CON2;
-
-
-
-
-
+	Verbraucher::Consumer CON3;
 
 };
 

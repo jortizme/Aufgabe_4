@@ -6,10 +6,6 @@
  */
 
 
-/* TODO: implement textgenenerator task.
- * Implementation can be done in C style or by using an OOP approach.
- */
-
 
 #include <TextGenerator.h>
 #include "Application.h"
@@ -31,7 +27,7 @@ const char text[] =
     "Meine Schueler an der Nase herum -\r\n"
     "Und sehe, dass wir nichts wissen koennen!\r\n";
 
-
+const uint32_t textLength = strlen(text) + 1;
 
 TextGenerator::TextGenerator(const char * const name,
 						uint16_t    stackDepth,
@@ -46,28 +42,12 @@ TextGenerator::TextGenerator(const char * const name,
 						RTOS::PeriodicTaskBase(name, stackDepth, priority,period,immidiateStart),
 						m_Producer_ID(Producer_ID)
 {
-	strcpy(m_text,text);
 
 	GPIO::initialize();
 
 	JW2 =  new(JW2men) GPIO(Port,Pin,Direction);
 
-	GPIO::InterruptHandler Button_Interrupt = [this](uint32_t i)
-			{
-
-				osSignalSet(this->m_Producer_ID, INT_EVENT);
-		/*if(false == this->sendMessage(this->m_Producer_ID, this->m_text))
-						printf("Incorrect parameters TextGenerator\n");*/
-
-			};
-
-	if(true == JW2->onInterrupt(Button_Interrupt, GPIO::EdgeType::FALLING_EDGE))
-		{
-			printf("Interrupt initialized\n");
-		}
-	else{
-		printf("Interrupt initialization failed.\n");
-	}
+	GPIO::InterruptHandler Button_Interrupt = [this](uint32_t i){osSignalSet(this->getTaskHandle(), INT_EVENT);};
 
 	this->finalizeInit();
 
@@ -78,18 +58,18 @@ TextGenerator::~TextGenerator(){}
 
 void TextGenerator::m_task()
 {
+	char m_text[textLength];
+
+	strcpy(m_text,text);
 
 	while(true)
 	{
+		osEvent result = osSignalWait(RTOS::TIMEREVENT | INT_EVENT, osWaitForever);
 
-		osEvent result = osSignalWait(RTOS::TIMEREVENT, osWaitForever);
-
-		if(result.value.signals & RTOS::TIMEREVENT)
+		if(result.value.signals & RTOS::TIMEREVENT || result.value.signals & INT_EVENT )
 		{
-			if(false == this->sendMessage(this->m_Producer_ID, this->m_text))
+			if(false == this->sendMessage(this->m_Producer_ID, m_text))
 				printf("Incorrect parameters TextGenerator\n");
-
-
 		}
 	}
 }
